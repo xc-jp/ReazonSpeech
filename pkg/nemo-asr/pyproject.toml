@@ -5,16 +5,41 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "reazonspeech-nemo-asr"
 version = "2.0.1"
-dependencies = [
-    "numpy",
-    "librosa",
-    "soundfile",
-    "torch",
-    "nemo_toolkit[asr]",
-]
+dependencies = ["numpy", "librosa", "soundfile", "torch", "nemo_toolkit[asr]"]
 
 [tool.setuptools.package-dir]
 "reazonspeech.nemo.asr" = "src"
 
 [project.scripts]
 reazonspeech-nemo-asr = "reazonspeech.nemo.asr.cli:main"
+
+[tool.ruff]
+line-length = 120
+exclude = [".venv"]
+
+[tool.ruff.lint]
+preview = true
+select = ["ALL"]
+ignore = [
+  "ANN101", # Missing type annotation for `self` in method
+  "ANN102", # Missing type annotation for `cls` in classmethod
+  "COM812", # conflict with formatter
+  "CPY",    # Copyright rules
+  "D1",     # Missing docstring
+  "D203",   # one-blank-line-before-class (incompatible with D211)
+  "D213",   # multi-line-summary-second-line (incompatible with D212)
+  "D407",   # Missing dashed underline after section ("Args")
+  "D413",   # Missing blank line after last section ("Args")
+  "ERA001", # Found commented-out code
+  "FBT003", # Boolean positional value in function call
+  "FIX002", # Line contains TODO, consider resolving the issue
+  "ISC001", # conflict with formatter
+  "RET504", # Unnecessary assignment before `return` statement
+  "RET505", # Unnecessary `else` after `return` statement
+  "RET508", # Unnecessary `elif` after `break` statement
+  "TD",     # todo rules.
+]
+
+[tool.ruff.lint.isort]
+order-by-type = false
+known-first-party = ["reazonspeech.nemo.asr"]

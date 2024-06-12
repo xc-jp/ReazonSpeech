@@ -1,58 +1,65 @@
+from __future__ import annotations
+
+from typing import IO, TYPE_CHECKING
+
 import librosa
-import soundfile
 import numpy as np
+import numpy.typing as npt
+import soundfile
+
 from .interface import AudioData
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from torch import Tensor
 
 SAMPLERATE = 16000
 
-def audio_from_numpy(array, samplerate):
-    """Load audio from Numpy array
+
+def audio_from_numpy(array: npt.NDArray[np.float32], samplerate: int) -> AudioData:
+    """Load audio from Numpy array.
 
     Args:
-      array (numpy.ndarray): Audio audio
-      samplerate (int): Sample rate of the input array
-
-    Returns:
-      AudioData
+      array: Audio audio
+      samplerate: Sample rate of the input array
     """
     return AudioData(array, samplerate)
 
-def audio_from_tensor(tensor, samplerate):
-    """Load audio from PyTorch Tensor
+
+def audio_from_tensor(tensor: Tensor, samplerate: int) -> AudioData:
+    """Load audio from PyTorch Tensor.
 
     Args:
-      tensor (torch.tensor): Audio audio
-      samplerate (int): Sample rate of the input tensor
-
-    Returns:
-      AudioData
+      tensor: Audio audio
+      samplerate: Sample rate of the input tensor
     """
     return audio_from_numpy(tensor.numpy(), samplerate)
 
-def audio_from_path(path):
-    """Load audio from a file
+
+def audio_from_path(path: str | Path) -> AudioData:
+    """Load audio from a file.
 
     Args:
-      path (str): Path to audio file
-
-    Returns:
-      AudioData
+      path: Path to audio file
     """
     array, samplerate = librosa.load(path, sr=None)
-    return audio_from_numpy(array, samplerate)
+    return audio_from_numpy(array, int(samplerate))
 
-def audio_to_file(fp, audio, format='wav'):
-    """Write audio data to file
+
+def audio_to_file(fp: IO, audio: AudioData, format: str | None = "wav") -> None:  # noqa: A002
+    """Write audio data to file.
 
     Args:
-      fp (File): output file
-      audio (AudioData): Audio data to write
-      format (str): Audio encoding
+      fp: output file
+      audio: Audio data to write
+      format: Audio encoding
     """
     soundfile.write(fp, audio.waveform, audio.samplerate, format=format)
 
-def norm_audio(audio):
-    """Normalize audio into 16khz mono waveform
+
+def norm_audio(audio: AudioData) -> AudioData:
+    """Normalize audio into 16khz mono waveform.
 
     Args:
       audio (AudioData): Audio data to normalize
@@ -67,17 +74,16 @@ def norm_audio(audio):
         waveform = librosa.to_mono(waveform)
     return AudioData(waveform, SAMPLERATE)
 
-def pad_audio(audio, seconds):
-    """Pad audio with silence
+
+def pad_audio(audio: AudioData, seconds: float) -> AudioData:
+    """Pad audio with silence.
 
     Args:
-      audio (AudioData): Audio data to pad
-      seconds (float): Add N seconds padding
+      audio: Audio data to pad
+      seconds: Add N seconds padding
 
     Returns:
       AudioData
     """
-    waveform = np.pad(audio.waveform,
-                      pad_width=int(seconds * audio.samplerate),
-                      mode='constant')
+    waveform = np.pad(audio.waveform, pad_width=int(seconds * audio.samplerate), mode="constant")
     return AudioData(waveform, audio.samplerate)
