@@ -1,16 +1,20 @@
 import os
-import dataclasses
+from typing import Literal
+from nemo.collections.asr.models import EncDecRNNTBPEModel
 import torch
-from .interface import TranscribeConfig
+from .interface import AudioData, TranscribeConfig, TranscribeResult
 from .decode import decode_hypothesis, PAD_SECONDS
 from .audio import audio_to_file, pad_audio, norm_audio
 from .fs import create_tempfile
 
-def load_model(device=None):
+
+def load_model(
+    device: Literal["cuda", "cpu"] | torch.device | None = None,
+) -> EncDecRNNTBPEModel:
     """Load ReazonSpeech model
 
     Args:
-      device (str): Specify "cuda" or "cpu"
+      device: Specify "cuda" or "cpu"
 
     Returns:
       nemo.collections.asr.models.EncDecRNNTBPEModel
@@ -22,18 +26,24 @@ def load_model(device=None):
             device = "cpu"
 
     from nemo.utils import logging
-    logging.setLevel(logging.ERROR)
-    from nemo.collections.asr.models import EncDecRNNTBPEModel
-    return EncDecRNNTBPEModel.from_pretrained('reazon-research/reazonspeech-nemo-v2',
-                                              map_location=device)
 
-def transcribe(model, audio, config=None):
+    logging.setLevel(logging.ERROR)
+
+    return EncDecRNNTBPEModel.from_pretrained(
+        "reazon-research/reazonspeech-nemo-v2",
+        map_location=device,  # pyright: ignore[reportArgumentType]
+    )
+
+
+def transcribe(
+    model: EncDecRNNTBPEModel, audio: AudioData, config: TranscribeConfig | None = None
+) -> TranscribeResult:
     """Inference audio data using NeMo model
 
     Args:
-        model (nemo.collections.asr.models.EncDecRNNTBPEModel): ReazonSpeech model
-        audio (AudioData): Audio data to transcribe
-        config (TranscribeConfig): Additional settings
+        model: ReazonSpeech model
+        audio: Audio data to transcribe
+        config: Additional settings
 
     Returns:
         TranscribeResult
@@ -48,14 +58,11 @@ def transcribe(model, audio, config=None):
     with create_tempfile() as tmpf:
         audio_to_file(tmpf, audio)
 
-        if os.name == 'nt':
+        if os.name == "nt":
             tmpf.close()
 
         hyp, _ = model.transcribe(
-            [tmpf.name],
-            batch_size=1,
-            return_hypotheses=True,
-            verbose=config.verbose
+            [tmpf.name], batch_size=1, return_hypotheses=True, verbose=config.verbose
         )
         hyp = hyp[0]
 
