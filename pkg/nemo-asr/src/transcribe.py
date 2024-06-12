@@ -1,17 +1,21 @@
+from __future__ import annotations
+
 import os
 from typing import Literal
-from nemo.collections.asr.models import EncDecRNNTBPEModel
+
 import torch
-from .interface import AudioData, TranscribeConfig, TranscribeResult
+from nemo.collections.asr.models import EncDecRNNTBPEModel
+
+from .audio import audio_to_file, norm_audio, pad_audio
 from .decode import decode_hypothesis, PAD_SECONDS
-from .audio import audio_to_file, pad_audio, norm_audio
 from .fs import create_tempfile
+from .interface import AudioData, TranscribeConfig, TranscribeResult
 
 
 def load_model(
     device: Literal["cuda", "cpu"] | torch.device | None = None,
 ) -> EncDecRNNTBPEModel:
-    """Load ReazonSpeech model
+    """Load ReazonSpeech model.
 
     Args:
       device: Specify "cuda" or "cpu"
@@ -20,10 +24,7 @@ def load_model(
       nemo.collections.asr.models.EncDecRNNTBPEModel
     """
     if device is None:
-        if torch.cuda.is_available():
-            device = "cuda"
-        else:
-            device = "cpu"
+        device = "cuda" if torch.cuda.is_available() else "cpu"
 
     from nemo.utils import logging
 
@@ -35,10 +36,8 @@ def load_model(
     )
 
 
-def transcribe(
-    model: EncDecRNNTBPEModel, audio: AudioData, config: TranscribeConfig | None = None
-) -> TranscribeResult:
-    """Inference audio data using NeMo model
+def transcribe(model: EncDecRNNTBPEModel, audio: AudioData, config: TranscribeConfig | None = None) -> TranscribeResult:
+    """Inference audio data using NeMo model.
 
     Args:
         model: ReazonSpeech model
@@ -61,9 +60,7 @@ def transcribe(
         if os.name == "nt":
             tmpf.close()
 
-        hyp, _ = model.transcribe(
-            [tmpf.name], batch_size=1, return_hypotheses=True, verbose=config.verbose
-        )
+        hyp, _ = model.transcribe([tmpf.name], batch_size=1, return_hypotheses=True, verbose=config.verbose)
         hyp = hyp[0]
 
     ret = decode_hypothesis(model, hyp)

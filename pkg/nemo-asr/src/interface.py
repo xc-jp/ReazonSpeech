@@ -1,11 +1,16 @@
-import numpy as np
-import numpy.typing as npt
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy as np
+    import numpy.typing as npt
 
 
 @dataclass
 class AudioData:
-    """Container for audio waveform"""
+    """Container for audio waveform."""
 
     waveform: npt.NDArray[np.float32]
     samplerate: int
@@ -13,7 +18,7 @@ class AudioData:
 
 @dataclass
 class Subword:
-    """A subword with timestamp"""
+    """A subword with timestamp."""
 
     # Currently Subword only has a single-point timestamp.
     # Theoretically, we should be able to compute time ranges.
@@ -24,7 +29,7 @@ class Subword:
 
 @dataclass
 class Segment:
-    """A segment of transcription with timestamps"""
+    """A segment of transcription with timestamps."""
 
     start_seconds: float
     end_seconds: float

@@ -1,6 +1,7 @@
+import contextlib
 import os
 import tempfile
-import contextlib
+
 
 @contextlib.contextmanager
 def win32_tempfile():
@@ -10,8 +11,9 @@ def win32_tempfile():
     finally:
         os.unlink(tmpf.name)
 
+
 def create_tempfile():
-    if os.name == 'nt':
+    if os.name == "nt":
         return win32_tempfile()
     else:
         return tempfile.NamedTemporaryFile()

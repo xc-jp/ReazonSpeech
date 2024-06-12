@@ -1,4 +1,4 @@
-from .interface import Subword, Segment, TranscribeResult
+from .interface import Segment, Subword, TranscribeResult
 
 # Hyper parameters
 PAD_SECONDS = 0.5
@@ -6,12 +6,13 @@ SECONDS_PER_STEP = 0.08
 SUBWORDS_PER_SEGMENTS = 10
 PHONEMIC_BREAK = 0.5
 
-TOKEN_EOS = {'。', '?', '!'}
-TOKEN_COMMA = {'、', ','}
+TOKEN_EOS = {"。", "?", "!"}
+TOKEN_COMMA = {"、", ","}
 TOKEN_PUNC = TOKEN_EOS | TOKEN_COMMA
 
+
 def find_end_of_segment(subwords, start):
-    """Heuristics to identify speech boundaries"""
+    """Heuristics to identify speech boundaries."""
     length = len(subwords)
     for idx in range(start, length):
         if idx < length - 1:
@@ -25,8 +26,9 @@ def find_end_of_segment(subwords, start):
                         break
     return idx
 
+
 def decode_hypothesis(model, hyp):
-    """Decode ALSD beam search info into transcribe result
+    """Decode ALSD beam search info into transcribe result.
 
     Args:
         model (EncDecRNNTBPEModel): NeMo ASR model
@@ -42,11 +44,13 @@ def decode_hypothesis(model, hyp):
 
     subwords = []
     for idx, (token_id, step) in enumerate(zip(y_sequence, hyp.timestep)):
-        subwords.append(Subword(
-            token_id=token_id,
-            token=model.tokenizer.ids_to_text([token_id]),
-            seconds=max(SECONDS_PER_STEP * (step - idx - 1) - PAD_SECONDS, 0)
-        ))
+        subwords.append(
+            Subword(
+                token_id=token_id,
+                token=model.tokenizer.ids_to_text([token_id]),
+                seconds=max(SECONDS_PER_STEP * (step - idx - 1) - PAD_SECONDS, 0),
+            )
+        )
 
     # In SentncePiece, whitespace is considered as a normal token and
     # represented with a meta character (U+2581). Trim them.
@@ -56,11 +60,13 @@ def decode_hypothesis(model, hyp):
     start = 0
     while start < len(subwords):
         end = find_end_of_segment(subwords, start)
-        segments.append(Segment(
-            start_seconds=subwords[start].seconds,
-            end_seconds=subwords[end].seconds + SECONDS_PER_STEP,
-            text="".join(x.token for x in subwords[start:end+1]),
-        ))
+        segments.append(
+            Segment(
+                start_seconds=subwords[start].seconds,
+                end_seconds=subwords[end].seconds + SECONDS_PER_STEP,
+                text="".join(x.token for x in subwords[start : end + 1]),
+            )
+        )
         start = end + 1
 
     return TranscribeResult(text, subwords, segments)
