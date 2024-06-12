@@ -25,29 +25,31 @@ Examples
     $ reazonspeech-nemo-asr -o sample.vtt sample.webm
 """
 
+from __future__ import annotations
+
 import getopt
 import locale
 import sys
 import warnings
-from typing import Optional
+from pathlib import Path
 
 from .audio import audio_from_path
 from .transcribe import load_model, transcribe
 from .writer import get_writer
 
 
-def main() -> Optional[int]:
+def main() -> int | None:
     outpath = None
     outext = None
 
     opts, args = getopt.getopt(
         sys.argv[1:],
         "ho:",
-        (
+        [
             "help",
             "output=",
             "to=",
-        ),
+        ],
     )
     for k, v in opts:
         if k in {"-h", "--help"}:
@@ -60,7 +62,9 @@ def main() -> Optional[int]:
     if not args:
         return 1
 
-    outfile = open(outpath, "w", encoding=locale.getpreferredencoding(False)) if outpath is not None else sys.stdout
+    outfile = (
+        Path(outpath).open("w", encoding=locale.getpreferredencoding(False)) if outpath is not None else sys.stdout  # noqa: SIM115
+    )
 
     # Suppress warnings from ESPnet
     warnings.simplefilter("ignore")

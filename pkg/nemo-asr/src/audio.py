@@ -47,7 +47,7 @@ def audio_from_path(path: str | Path) -> AudioData:
     return audio_from_numpy(array, int(samplerate))
 
 
-def audio_to_file(fp: IO, audio: AudioData, format: str | None = "wav") -> None:
+def audio_to_file(fp: IO, audio: AudioData, format: str | None = "wav") -> None:  # noqa: A002
     """Write audio data to file.
 
     Args:

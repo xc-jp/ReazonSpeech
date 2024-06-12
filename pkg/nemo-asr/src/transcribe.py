@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import os
+import typing
 from typing import Literal
 
 import torch
 from nemo.collections.asr.models import EncDecRNNTBPEModel
+from nemo.collections.asr.parts.mixins.mixins import Hypothesis
+from nemo.utils import logging
 
 from .audio import audio_to_file, norm_audio, pad_audio
 from .decode import decode_hypothesis, PAD_SECONDS
@@ -25,8 +28,6 @@ def load_model(
     """
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    from nemo.utils import logging
 
     logging.setLevel(logging.ERROR)
 
@@ -61,7 +62,7 @@ def transcribe(model: EncDecRNNTBPEModel, audio: AudioData, config: TranscribeCo
             tmpf.close()
 
         hyp, _ = model.transcribe([tmpf.name], batch_size=1, return_hypotheses=True, verbose=config.verbose)
-        hyp = hyp[0]
+        hyp = typing.cast(Hypothesis, hyp[0])
 
     ret = decode_hypothesis(model, hyp)
 
